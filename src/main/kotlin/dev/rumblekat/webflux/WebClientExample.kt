@@ -1,6 +1,6 @@
 package dev.rumblekat.webflux
 
-import dev.rumblekat.webflux.book.Book
+import dev.rumblekat.webflux.book.BookDto
 import org.slf4j.LoggerFactory
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpMethod
@@ -17,12 +17,12 @@ class WebClientExample {
     val log = LoggerFactory.getLogger(javaClass)
 
     @GetMapping("/books/block")
-    fun getBooksBlockingWay(): List<Book>{
+    fun getBooksBlockingWay(): List<BookDto>{
         log.info("Start RestTemplate")
 
         val restTemplate = RestTemplate()
         val response = restTemplate.exchange(url, HttpMethod.GET, null,
-            object : ParameterizedTypeReference<List<Book>>(){}
+            object : ParameterizedTypeReference<List<BookDto>>(){}
             )
         // 복수개의 처리를 해야하면, 논블로킹 API를 써서 처리를 해야했는데, webClient에서 처리 가능
         // 스프링 5부터 도입된 것으로, 두방식다 사용가능함. 동시에 여러 서버로 호출이 가능.
@@ -36,13 +36,13 @@ class WebClientExample {
     }
 
     @GetMapping("/books/nonblock")
-    fun getBooksNonBlockingWay(): Flux<Book> {
+    fun getBooksNonBlockingWay(): Flux<BookDto> {
         log.info("Start Webclient")
         val flux = WebClient.create()
             .get()
             .uri(url)
             .retrieve()
-            .bodyToFlux(Book::class.java)
+            .bodyToFlux(BookDto::class.java)
             .map {
                 log.info("result: {}",it)
                 it
@@ -53,8 +53,8 @@ class WebClientExample {
     /*
     * 2023-02-19T12:27:11.259+09:00  INFO 4936 --- [ctor-http-nio-2] dev.rumblekat.webflux.WebClientExample   : Start Webclient
       2023-02-19T12:27:11.460+09:00  INFO 4936 --- [ctor-http-nio-2] dev.rumblekat.webflux.WebClientExample   : Finish -> 논 블로킹으로 사용된다.
-      2023-02-19T12:27:11.902+09:00  INFO 4936 --- [ctor-http-nio-2] dev.rumblekat.webflux.WebClientExample   : result: Book(id=1, name=kotlin in action, price=3000)
-      2023-02-19T12:27:11.913+09:00  INFO 4936 --- [ctor-http-nio-2] dev.rumblekat.webflux.WebClientExample   : result: Book(id=2, name=kotlin in action 2, price=4000)
+      2023-02-19T12:27:11.902+09:00  INFO 4936 --- [ctor-http-nio-2] dev.rumblekat.webflux.WebClientExample   : result: BookDto(id=1, name=kotlin in action, price=3000)
+      2023-02-19T12:27:11.913+09:00  INFO 4936 --- [ctor-http-nio-2] dev.rumblekat.webflux.WebClientExample   : result: BookDto(id=2, name=kotlin in action 2, price=4000)
     *
     * */
 
